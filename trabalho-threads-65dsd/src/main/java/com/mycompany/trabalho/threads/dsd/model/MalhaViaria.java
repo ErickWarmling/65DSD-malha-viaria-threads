@@ -24,6 +24,19 @@ public class MalhaViaria {
     public void setLinhas(int linhas) {
         this.linhas = linhas;
     }
+    
+    // Acessar uma célula específica da matriz malhaViaria
+    public Celula getCelula(int linha, int coluna) {
+        if (matrizMalha == null) {
+            return null;
+        }
+        
+        if (linha< 0 || linha >= linhas || coluna < 0 || coluna >= colunas) {
+            return null;
+        }
+        
+        return matrizMalha[linha][coluna];
+    }
 
     public int getColunas() {
         return colunas;
