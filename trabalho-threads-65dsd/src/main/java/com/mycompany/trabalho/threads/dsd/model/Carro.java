@@ -1,5 +1,10 @@
 package com.mycompany.trabalho.threads.dsd.model;
 
-public class Carro extends Thread {
-    
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+
+public class Carro {
+
 }

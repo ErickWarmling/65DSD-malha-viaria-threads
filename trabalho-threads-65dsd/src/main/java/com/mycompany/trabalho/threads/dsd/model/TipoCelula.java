@@ -1,36 +1,19 @@
 package com.mycompany.trabalho.threads.dsd.model;
 
-public enum TipoCelula {   
-    VAZIO(0),
-    ESTRADA_CIMA(1),
-    ESTRADA_DIREITA(2),
-    ESTRADA_BAIXO(3),
-    ESTRADA_ESQUERDA(4),
-    CRUZAMENTO_CIMA(5),
-    CRUZAMENTO_DIREITA(6),
-    CRUZAMENTO_BAIXO(7),
-    CRUZAMENTO_ESQUERDA(8),
-    CRUZAMENTO_CIMA_DIREITA(9),
-    CRUZAMENTO_CIMA_ESQUERDA(10),
-    CRUZAMENTO_DIREITA_BAIXO(11),
-    CRUZAMENTO_BAIXO_ESQUERDA(12);
-    
-    private int tipo;
-    
-    TipoCelula(int tipo) {
-        this.tipo = tipo;
-    }
-
-    public int getTipo() {
-        return tipo;
-    }
-
-    public static TipoCelula tipoPorCodigo(int tipo) {
-        for (TipoCelula tipoCelula : values()) {
-            if (tipoCelula.tipo == tipo) {
-                return tipoCelula;
-            }
-        }
-        return VAZIO;
-    }
+public class TipoCelula {
+	
+	public static final int VAZIO = 0;
+	public static final int ESTRADA_CIMA = 1;
+	public static final int ESTRADA_DIREITA = 2;
+	public static final int ESTRADA_BAIXO = 3;
+	public static final int ESTRADA_ESQUERDA = 4;
+	public static final int CRUZAMENTO_CIMA = 5;
+	public static final int CRUZAMENTO_DIREITA = 6;
+	public static final int CRUZAMENTO_BAIXO = 7;
+	public static final int CRUZAMENTO_ESQUERDA = 8;
+	public static final int CRUZAMENTO_CIMA_E_DIREITA = 9;
+	public static final int CRUZAMENTO_CIMA_E_ESQUERDA = 10;
+	public static final int CRUZAMENTO_DIREITA_E_BAIXO = 11;
+	public static final int CRUZAMENTO_BAIXO_E_ESQUERDA = 12;
+	
 }

@@ -1,18 +1,47 @@
 package com.mycompany.trabalho.threads.dsd.model;
 
-public class Celula {
-    
-    private TipoCelula tipoCelula;
-    
-    public Celula(TipoCelula tipoCelula) {
-        this.tipoCelula = tipoCelula;
-    }
+import com.mycompany.trabalho.threads.dsd.model.Direcao;
 
-    public TipoCelula getTipoCelula() {
-        return tipoCelula;
-    }
+public abstract class Celula {
+	
+	private final int linha;
+	private final int coluna;
+	private final Direcao direcao;
+	private final boolean isEntrada;
+	private final boolean isCruzamento;
+	
+	public Celula (int linha, int coluna, Direcao direcao, boolean isEntrada, boolean isCruzamento) {
+		this.linha = linha;
+		this.coluna = coluna;
+		this.direcao = direcao;
+		this.isEntrada = isEntrada;
+		this.isCruzamento = isCruzamento;
+	}
 
-    public void setTipoCelula(TipoCelula tipoCelula) {
-        this.tipoCelula = tipoCelula;
-    }
+	public int getLinha() {
+		return linha;
+	}
+
+	public int getColuna() {
+		return coluna;
+	}
+	
+	public Direcao getDirecao() {
+		return direcao;
+	}
+
+	public boolean isEntrada() {
+		return isEntrada;
+	}
+
+	public boolean isCruzamento() {
+		return isCruzamento;
+	}
+	
+	public abstract void liberar();
+	
+	public abstract void bloquear() throws InterruptedException;
+	
+	public abstract boolean tentarBloquear() throws InterruptedException;
+	
 }
