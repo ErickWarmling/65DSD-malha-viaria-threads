@@ -7,6 +7,7 @@ public abstract class Celula {
 	private final int linha;
 	private final int coluna;
 	private final Direcao direcao;
+	private Carro carro;
 	private final boolean isEntrada;
 	private final boolean isCruzamento;
 	
@@ -28,6 +29,18 @@ public abstract class Celula {
 	
 	public Direcao getDirecao() {
 		return direcao;
+	}
+
+
+	public void setCarro(Carro carro) {
+		this.carro = carro;
+	}
+	
+	public void removerCarroDaCelula() {
+		if (this.carro != null) {
+			this.carro = null;
+			liberar();
+		}
 	}
 
 	public boolean isEntrada() {
