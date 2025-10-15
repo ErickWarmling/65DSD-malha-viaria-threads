@@ -18,6 +18,7 @@ public class CelulaSemaforo extends Celula{
 
 	@Override
 	public void liberar() {
+		semaforo.release();
 	}
 
 	@Override
