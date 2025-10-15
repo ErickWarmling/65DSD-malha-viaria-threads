@@ -135,6 +135,12 @@ public class Carro extends Thread {
 		Celula c1 = celulaADireita();
 		Celula c2 = rua.celulaParaDireita(c1);
 		Celula c3 = rua.celulaParaDireita(c2);
+		
+		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2, c3);
+		}
 	}
 
 	private void direitaParaCima() {
@@ -142,22 +148,46 @@ public class Carro extends Thread {
 		Celula c2 = rua.celulaParaDireita(c1);
 		Celula c3 = rua.celulaParaCima(c2);
 		Celula c4 = rua.celulaParaCima(c3);
+		
+		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2, c3, c4);
+		}
 	}
 
 	private void direitaParaBaixo() {
 		Celula c1 = celulaADireita();
 		Celula c2 = rua.celulaParaBaixo(c1);
+		
+		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2);
+		}
 	}
 
 	private void esquerdaParaEsquerda() {
 		Celula c1 = celulaAEsquerda();
 		Celula c2 = rua.celulaParaEsquerda(c1);
 		Celula c3 = rua.celulaParaEsquerda(c2);
+		
+		if (c2.getDirecao().getSentidoDirecao() > 4 && c2.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2, c3);
+		}
 	}
 
 	private void esquerdaParaCima() {
 		Celula c1 = celulaAEsquerda();
 		Celula c2 = rua.celulaParaCima(c1);
+		
+		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2);
+		}
 	}
 
 	private void esquerdaParaBaixo() {
@@ -165,11 +195,23 @@ public class Carro extends Thread {
 		Celula c2 = rua.celulaParaDireita(c1);
 		Celula c3 = rua.celulaParaBaixo(c2);
 		Celula c4 = rua.celulaParaBaixo(c3);
+		
+		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2, c3, c4);
+		}
 	}
 
 	private void cimaParaDireita() {
 		Celula c1 = celulaACima();
 		Celula c2 = rua.celulaParaDireita(c1);
+		
+		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2);
+		}
 	}
 
 	private void cimaParaEsquerda() {
@@ -177,12 +219,24 @@ public class Carro extends Thread {
 		Celula c2 = rua.celulaParaCima(c1);
 		Celula c3 = rua.celulaParaEsquerda(c2);
 		Celula c4 = rua.celulaParaEsquerda(c3);
+		
+		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2, c3, c4);
+		}
 	}
 
 	private void cimaParaCima() {
 		Celula c1 = celulaACima();
 		Celula c2 = rua.celulaParaCima(c1);
 		Celula c3 = rua.celulaParaCima(c2);
+		
+		if (c2.getDirecao().getSentidoDirecao() > 4 && c2.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2, c3);
+		}
 	}
 
 	private void baixoParaDireita() {
@@ -190,17 +244,35 @@ public class Carro extends Thread {
 		Celula c2 = rua.celulaParaBaixo(c1);
 		Celula c3 = rua.celulaParaDireita(c2);
 		Celula c4 = rua.celulaParaDireita(c3);
+		
+		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2, c3, c4);
+		}
 	}
 
 	private void baixoParaEsquerda() {
 		Celula c1 = celulaABaixo();
 		Celula c2 = rua.celulaParaEsquerda(c1);
+		
+		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2);
+		}
 	}
 
 	private void baixoParaBaixo() {
 		Celula c1 = celulaABaixo();
 		Celula c2 = rua.celulaParaBaixo(c1);
 		Celula c3 = rua.celulaParaBaixo(c2);
+		
+		if (c2.getDirecao().getSentidoDirecao() > 4 && c2.getDirecao().getSentidoDirecao() < 9) {
+			opcoesCruzamento();
+		} else {
+			jantarDosFilosofos(c1, c2, c3);
+		}
 	}
 
 	private void opcoesCruzamento() {
@@ -263,7 +335,64 @@ public class Carro extends Thread {
 		}
 	}
 
-	private void jantarDosFilosofos() {
+	private void jantarDosFilosofos(Celula... celulas) {
+		Random random = new Random();
+	    boolean conseguiuAvancar = false;
 
+	    try {
+	        do {
+	            boolean[] bloqueios = new boolean[celulas.length];
+	            boolean todasBloqueadas = true;
+
+	            for (int i = 0; i < celulas.length; i++) {
+	                Celula celula = celulas[i];
+	                if (celula != null) {
+	                    bloqueios[i] = celula.tentarBloquear();
+	                    if (!bloqueios[i]) {
+	                        todasBloqueadas = false;
+	                        break;
+	                    }
+	                } else {
+	                    todasBloqueadas = false;
+	                    break;
+	                }
+	            }
+
+	            if (todasBloqueadas) {
+	                if (this.celulaAtual instanceof CelulaSemaforo) {
+	                    this.celulaAtual.liberar(); 
+	                    for (Celula celula : celulas) {
+	                        irParaCelulaNoCruzamento(celula);
+	                    }
+	                } else {
+	                    for (Celula celula : celulas) {
+	                        irParaCelula(celula);
+	                    }
+	                }
+
+	                this.direcao = celulas[celulas.length - 1].getDirecao();
+
+	                for (Celula celula : celulas) {
+	                    celula.liberar();
+	                }
+
+	                conseguiuAvancar = true;
+
+	            } else {	     
+	                for (int i = 0; i < celulas.length; i++) {
+	                    if (bloqueios[i] && celulas[i] != null) {
+	                        celulas[i].liberar();
+	                    }
+	                }
+
+	                Thread.sleep(velocidade + random.nextInt(500));
+	            }
+
+	        } while (!conseguiuAvancar && ativo);
+
+	    } catch (InterruptedException e) {
+	        Thread.currentThread().interrupt();
+	        System.out.println("Carro " + getName() + " interrompido durante jantar dos filósofos.");
+	    }
 	}
 }
