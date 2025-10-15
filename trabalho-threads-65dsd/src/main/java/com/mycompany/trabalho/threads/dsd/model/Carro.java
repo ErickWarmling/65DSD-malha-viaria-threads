@@ -14,6 +14,7 @@ public class Carro extends Thread {
 	public Carro(Rua rua, int velocidade) {
 		this.rua = rua;
 		this.velocidade = velocidade;
+		opcoesCruzamento();
 	}
 
 	@Override
@@ -25,9 +26,23 @@ public class Carro extends Thread {
 		System.out.println("Carro saiu da rua");
 		rua.removerCarro(this);
 	}
-	
+
 	public void mover() {
-		
+		try {
+			irParaCelula(proximaPosicao);
+			Celula proximaPosicao = calcularProximaPosicao();
+			if (proximaPosicao != null) {
+				if (proximaPosicao.isCruzamento()) {
+					opcoesCruzamento();
+				}
+				setProximaPosicao(calcularProximaPosicao());
+			} else {
+				pararCarro();
+				Thread.sleep(velocidade);
+			}
+		} catch (InterruptedException e) {
+			System.out.println("Erro ao mover o carro: " + e.getMessage());
+		}
 	}
 
 	public Celula getCelulaAtual() {
@@ -44,6 +59,60 @@ public class Carro extends Thread {
 
 	private void pararCarro() {
 		this.ativo = false;
+	}
+
+	private Celula calcularProximaPosicao() {
+		try {
+			switch (direcao.getSentidoDirecao()) {
+			case TipoCelula.ESTRADA_CIMA:
+				return celulaACima();
+			case TipoCelula.ESTRADA_BAIXO:
+				return celulaABaixo();
+			case TipoCelula.ESTRADA_DIREITA:
+				return celulaADireita();
+			case TipoCelula.ESTRADA_ESQUERDA:
+				return celulaAEsquerda();
+			default:
+				return null;
+			}
+		} catch (ArrayIndexOutOfBoundsException e) {
+			System.out.println("Carro " + getName() + " não conseguiu calcular próxima posição.");
+			return null;
+		}
+
+	}
+
+	private void irParaCelula(Celula celula) {
+		try {
+			Celula celulaAntiga = this.celulaAtual;
+			celula.bloquear();
+			setCelulaAtual(celula);
+			celula.setCarro(this);
+
+			if (celulaAntiga != null) {
+				celulaAntiga.removerCarroDaCelula();
+			}
+
+			Thread.sleep(velocidade);
+		} catch (InterruptedException e) {
+			System.out.println("Carro interrompido: " + getName());
+		}
+	}
+
+	private void irParaCelulaNoCruzamento(Celula celula) {
+		try {
+			Celula celulaAntiga = this.celulaAtual;
+			setCelulaAtual(celula);
+			celula.setCarro(this);
+
+			if (celulaAntiga != null) {
+				celulaAntiga.removerCarroDaCelula();
+			}
+
+			Thread.sleep(velocidade);
+		} catch (InterruptedException e) {
+			System.out.println("Carro interrompido: " + getName());
+		}
 	}
 
 	private Celula celulaABaixo() {
@@ -192,5 +261,9 @@ public class Carro extends Thread {
 			}
 			break;
 		}
+	}
+
+	private void jantarDosFilosofos() {
+
 	}
 }
