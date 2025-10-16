@@ -3,7 +3,9 @@ package com.mycompany.trabalho.threads.dsd.model;
 import java.util.Random;
 
 public class Carro extends Thread {
-
+    
+    private static int contador = 0;
+    private final int id;
 	private final Rua rua;
 	private final int velocidade;
 	private Direcao direcao;
@@ -14,7 +16,7 @@ public class Carro extends Thread {
 	public Carro(Rua rua, int velocidade) {
 		this.rua = rua;
 		this.velocidade = velocidade;
-		opcoesCruzamento();
+		this.id = contador++;
 	}
 
 	@Override
@@ -45,6 +47,14 @@ public class Carro extends Thread {
 		}
 	}
 
+        public int getCarroId() {
+            return id;
+        }
+
+        public void setDirecao(Direcao direcao) {
+            this.direcao = direcao;
+        }
+        
 	public Celula getCelulaAtual() {
 		return celulaAtual;
 	}
@@ -135,7 +145,7 @@ public class Carro extends Thread {
 		Celula c1 = celulaADireita();
 		Celula c2 = rua.celulaParaDireita(c1);
 		Celula c3 = rua.celulaParaDireita(c2);
-		
+
 		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -148,7 +158,7 @@ public class Carro extends Thread {
 		Celula c2 = rua.celulaParaDireita(c1);
 		Celula c3 = rua.celulaParaCima(c2);
 		Celula c4 = rua.celulaParaCima(c3);
-		
+
 		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -159,7 +169,7 @@ public class Carro extends Thread {
 	private void direitaParaBaixo() {
 		Celula c1 = celulaADireita();
 		Celula c2 = rua.celulaParaBaixo(c1);
-		
+
 		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -171,7 +181,7 @@ public class Carro extends Thread {
 		Celula c1 = celulaAEsquerda();
 		Celula c2 = rua.celulaParaEsquerda(c1);
 		Celula c3 = rua.celulaParaEsquerda(c2);
-		
+
 		if (c2.getDirecao().getSentidoDirecao() > 4 && c2.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -182,7 +192,7 @@ public class Carro extends Thread {
 	private void esquerdaParaCima() {
 		Celula c1 = celulaAEsquerda();
 		Celula c2 = rua.celulaParaCima(c1);
-		
+
 		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -195,7 +205,7 @@ public class Carro extends Thread {
 		Celula c2 = rua.celulaParaDireita(c1);
 		Celula c3 = rua.celulaParaBaixo(c2);
 		Celula c4 = rua.celulaParaBaixo(c3);
-		
+
 		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -206,7 +216,7 @@ public class Carro extends Thread {
 	private void cimaParaDireita() {
 		Celula c1 = celulaACima();
 		Celula c2 = rua.celulaParaDireita(c1);
-		
+
 		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -219,7 +229,7 @@ public class Carro extends Thread {
 		Celula c2 = rua.celulaParaCima(c1);
 		Celula c3 = rua.celulaParaEsquerda(c2);
 		Celula c4 = rua.celulaParaEsquerda(c3);
-		
+
 		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -231,7 +241,7 @@ public class Carro extends Thread {
 		Celula c1 = celulaACima();
 		Celula c2 = rua.celulaParaCima(c1);
 		Celula c3 = rua.celulaParaCima(c2);
-		
+
 		if (c2.getDirecao().getSentidoDirecao() > 4 && c2.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -244,7 +254,7 @@ public class Carro extends Thread {
 		Celula c2 = rua.celulaParaBaixo(c1);
 		Celula c3 = rua.celulaParaDireita(c2);
 		Celula c4 = rua.celulaParaDireita(c3);
-		
+
 		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -255,7 +265,7 @@ public class Carro extends Thread {
 	private void baixoParaEsquerda() {
 		Celula c1 = celulaABaixo();
 		Celula c2 = rua.celulaParaEsquerda(c1);
-		
+
 		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -267,7 +277,7 @@ public class Carro extends Thread {
 		Celula c1 = celulaABaixo();
 		Celula c2 = rua.celulaParaBaixo(c1);
 		Celula c3 = rua.celulaParaBaixo(c2);
-		
+
 		if (c2.getDirecao().getSentidoDirecao() > 4 && c2.getDirecao().getSentidoDirecao() < 9) {
 			opcoesCruzamento();
 		} else {
@@ -337,62 +347,62 @@ public class Carro extends Thread {
 
 	private void jantarDosFilosofos(Celula... celulas) {
 		Random random = new Random();
-	    boolean conseguiuAvancar = false;
+		boolean conseguiuAvancar = false;
 
-	    try {
-	        do {
-	            boolean[] bloqueios = new boolean[celulas.length];
-	            boolean todasBloqueadas = true;
+		try {
+			do {
+				boolean[] bloqueios = new boolean[celulas.length];
+				boolean todasBloqueadas = true;
 
-	            for (int i = 0; i < celulas.length; i++) {
-	                Celula celula = celulas[i];
-	                if (celula != null) {
-	                    bloqueios[i] = celula.tentarBloquear();
-	                    if (!bloqueios[i]) {
-	                        todasBloqueadas = false;
-	                        break;
-	                    }
-	                } else {
-	                    todasBloqueadas = false;
-	                    break;
-	                }
-	            }
+				for (int i = 0; i < celulas.length; i++) {
+					Celula celula = celulas[i];
+					if (celula != null) {
+						bloqueios[i] = celula.tentarBloquear();
+						if (!bloqueios[i]) {
+							todasBloqueadas = false;
+							break;
+						}
+					} else {
+						todasBloqueadas = false;
+						break;
+					}
+				}
 
-	            if (todasBloqueadas) {
-	                if (this.celulaAtual instanceof CelulaSemaforo) {
-	                    this.celulaAtual.liberar(); 
-	                    for (Celula celula : celulas) {
-	                        irParaCelulaNoCruzamento(celula);
-	                    }
-	                } else {
-	                    for (Celula celula : celulas) {
-	                        irParaCelula(celula);
-	                    }
-	                }
+				if (todasBloqueadas) {
+					if (this.celulaAtual instanceof CelulaSemaforo) {
+						this.celulaAtual.liberar();
+						for (Celula celula : celulas) {
+							irParaCelulaNoCruzamento(celula);
+						}
+					} else {
+						for (Celula celula : celulas) {
+							irParaCelula(celula);
+						}
+					}
 
-	                this.direcao = celulas[celulas.length - 1].getDirecao();
+					this.direcao = celulas[celulas.length - 1].getDirecao();
 
-	                for (Celula celula : celulas) {
-	                    celula.liberar();
-	                }
+					for (Celula celula : celulas) {
+						celula.liberar();
+					}
 
-	                conseguiuAvancar = true;
+					conseguiuAvancar = true;
 
-	            } else {	     
-	                for (int i = 0; i < celulas.length; i++) {
-	                    if (bloqueios[i] && celulas[i] != null) {
-	                        celulas[i].liberar();
-	                    }
-	                }
+				} else {
+					for (int i = 0; i < celulas.length; i++) {
+						if (bloqueios[i] && celulas[i] != null) {
+							celulas[i].liberar();
+						}
+					}
 
-	                Thread.sleep(velocidade + random.nextInt(500));
-	            }
+					Thread.sleep(velocidade + random.nextInt(500));
+				}
 
-	        } while (!conseguiuAvancar && ativo);
+			} while (!conseguiuAvancar && ativo);
 
-	    } catch (InterruptedException e) {
-	        Thread.currentThread().interrupt();
-	        System.out.println("Carro " + getName() + " interrompido durante jantar dos filósofos.");
-	    }
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			System.out.println("Carro " + getName() + " interrompido durante jantar dos filósofos.");
+		}
 	}
 }

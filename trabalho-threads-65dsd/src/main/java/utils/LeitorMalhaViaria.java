@@ -10,6 +10,7 @@ import com.mycompany.trabalho.threads.dsd.model.Celula;
 import com.mycompany.trabalho.threads.dsd.model.CelulaMonitor;
 import com.mycompany.trabalho.threads.dsd.model.CelulaSemaforo;
 import com.mycompany.trabalho.threads.dsd.model.Direcao;
+import java.io.InputStreamReader;
 
 public class LeitorMalhaViaria {
 	
@@ -21,7 +22,7 @@ public class LeitorMalhaViaria {
 	}
 
 	public Celula[][] criarMatrizMalhaViaria(String caminhoArquivo) throws FileNotFoundException, IOException {
-		try (BufferedReader bufferedReader = new BufferedReader(new FileReader(caminhoArquivo))) {
+		try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(caminhoArquivo)))) {
 			int linhas = Integer.parseInt(bufferedReader.readLine().trim());
 			int colunas = Integer.parseInt(bufferedReader.readLine().trim());
 			

@@ -31,6 +31,9 @@ public abstract class Celula {
 		return direcao;
 	}
 
+    public Carro getCarro() {
+        return carro;
+    }
 
 	public void setCarro(Carro carro) {
 		this.carro = carro;
