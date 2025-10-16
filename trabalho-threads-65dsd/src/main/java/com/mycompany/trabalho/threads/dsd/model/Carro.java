@@ -1,408 +1,299 @@
 package com.mycompany.trabalho.threads.dsd.model;
 
+import com.mycompany.trabalho.threads.dsd.constantes.TipoCelula;
+import com.mycompany.trabalho.threads.dsd.model.Celula;
+import com.mycompany.trabalho.threads.dsd.model.Malha;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
+/**
+ * Representa um carro que se move pela malha viária.
+ * Implementa uma Thread independente que busca um caminho até a saída.
+ * Utiliza exclusão mútua para evitar colisões.
+ */
 public class Carro extends Thread {
-    
-    private static int contador = 0;
+
+    private static int contadorId = 0;
+    private static final int TEMPO_RETRY = 50; // Tempo de espera entre tentativas
+
     private final int id;
-	private final Rua rua;
-	private final int velocidade;
-	private Direcao direcao;
-	private Celula celulaAtual;
-	private Celula proximaPosicao;
-	private boolean ativo;
+    private Celula posicao;
+    private final Malha malha;
+    private final int velocidade;
+    private final boolean usarSemaforo;
+    private final Random random;
+    private volatile boolean rodando; //Controlar loop
+    
+    // Controle de direção para evitar voltar
+    private Celula ultimaPosicao;
 
-	public Carro(Rua rua, int velocidade) {
-		this.rua = rua;
-		this.velocidade = velocidade;
-		this.id = contador++;
-	}
+    public Carro(Celula posicaoInicial, Malha malha, int velocidade, boolean usarSemaforo) {
+        this.id = ++contadorId;
+        this.posicao = posicaoInicial;
+        this.malha = malha;
+        this.velocidade = velocidade;
+        this.usarSemaforo = usarSemaforo;
+        this.random = new Random();
+        this.rodando = true;
+        this.ultimaPosicao = null;
+        setName("Carro-" + id);
+    }
 
-	@Override
-	public void run() {
-		ativo = true;
-		while (ativo) {
-			mover();
-		}
-		System.out.println("Carro saiu da rua");
-		rua.removerCarro(this);
-	}
+    @Override
+    public void run() {
+        try {
+            System.out.println("Carro " + id + " iniciou em " + posicao + 
+                             " com velocidade " + velocidade + "ms");
 
-	public void mover() {
-		try {
-			irParaCelula(proximaPosicao);
-			Celula proximaPosicao = calcularProximaPosicao();
-			if (proximaPosicao != null) {
-				if (proximaPosicao.isCruzamento()) {
-					opcoesCruzamento();
-				}
-				setProximaPosicao(calcularProximaPosicao());
-			} else {
-				pararCarro();
-				Thread.sleep(velocidade);
-			}
-		} catch (InterruptedException e) {
-			System.out.println("Erro ao mover o carro: " + e.getMessage());
-		}
-	}
+            while (rodando && posicao != null) {
+                // Verifica se chegou na saída
+                if (posicao.isSaida(malha.getLinhas(), malha.getColunas())) {
+                    System.out.println("Carro " + id + " chegou na saída");
+                    finalizarCarro();
+                    break;
+                }
 
-        public int getCarroId() {
-            return id;
+                // Tenta mover
+                mover();
+                
+                // Aguarda baseado na velocidade
+                Thread.sleep(velocidade);
+            }
+        } catch (InterruptedException e) {
+            System.out.println("Carro " + id + " foi interrompido");
+        } finally {
+            finalizarCarro();
+        }
+    }
+
+    /**
+     * Move carro para próxima célula.
+     */
+    private void mover() throws InterruptedException {
+        Celula proxima = calcularProximaCelula();
+
+        if (proxima == null) {
+            System.out.println("Carro " + id + " sem caminho válido - finalizando");
+            rodando = false;
+            return;
         }
 
-        public void setDirecao(Direcao direcao) {
-            this.direcao = direcao;
+        int idAtual = posicao.getId();
+        int idProxima = proxima.getId();
+
+        if (idAtual < idProxima) {
+            tentarMoverParaProxima(proxima);
+        } else {
+            tentarMoverComReordenacao(proxima);
         }
+    }
+
+    private void tentarMoverParaProxima(Celula proxima) throws InterruptedException {
+        if (!proxima.tentarAdquirir(usarSemaforo)) {
+            Thread.sleep(TEMPO_RETRY);
+            return;
+        }
+
+        // verifica se próxima ainda está livre
+        if (proxima.podeEntrar()) {
+            realizarMovimento(proxima);
+        } else {
+            proxima.liberar(usarSemaforo);
+            Thread.sleep(TEMPO_RETRY);
+        }
+    }
+
+    private void tentarMoverComReordenacao(Celula proxima) throws InterruptedException {
+        // Libera temporariamente célula atual
+        posicao.liberar(usarSemaforo);
+
+        boolean sucesso = false;
+        while (!sucesso && rodando) {
+            // Tenta adquirir próxima (menor ID)
+            if (proxima.tentarAdquirir(usarSemaforo)) {
+                // Tenta re-adquirir atual (maior ID)
+                if (posicao.tentarAdquirir(usarSemaforo)) {
+                    // Agora tem ambos na ordem correta
+                    if (proxima.podeEntrar()) {
+                        realizarMovimento(proxima);
+                        sucesso = true;
+                    } else {
+                        // Próxima foi ocupada, libera tudo e retry
+                        posicao.liberar(usarSemaforo);
+                        proxima.liberar(usarSemaforo);
+                        Thread.sleep(TEMPO_RETRY);
+                    }
+                } else {
+                    // Falhou em re-adquirir atual, libera próxima e retry
+                    proxima.liberar(usarSemaforo);
+                    Thread.sleep(TEMPO_RETRY);
+                }
+            } else {
+                // Falhou em adquirir próxima, aguarda
+                Thread.sleep(TEMPO_RETRY);
+            }
+        }
+    }
+
+    /**
+     * Realiza o movimento do carro de uma célula para outra.
+     */
+    private void realizarMovimento(Celula destino) {
+        // Remove carro da posição atual
+        posicao.sairCarro();
+        posicao.liberar(usarSemaforo);
+
+        // Guarda posição anterior para evitar voltar
+        ultimaPosicao = posicao;
+
+        // Entra na nova posição
+        destino.entrarCarro(this);
         
-	public Celula getCelulaAtual() {
-		return celulaAtual;
-	}
+        System.out.println("Carro " + id + " moveu de " + posicao + " para " + destino);
+        
+        posicao = destino;
+    }
 
-	public void setCelulaAtual(Celula celulaAtual) {
-		this.celulaAtual = celulaAtual;
-	}
+    /**
+     * Calcula a próxima célula baseada no tipo da célula atual.
+     * Evita voltar para a última posição quando possível.
+     */
+    private Celula calcularProximaCelula() {
+        List<Celula> opcoes = obterOpcoesMovimento();
 
-	public void setProximaPosicao(Celula proximaPosicao) {
-		this.proximaPosicao = proximaPosicao;
-	}
+        if (opcoes.isEmpty()) {
+            return null;
+        }
 
-	private void pararCarro() {
-		this.ativo = false;
-	}
+        // Remove a opção de voltar se houver outras alternativas
+        if (ultimaPosicao != null && opcoes.size() > 1) {
+            opcoes.removeIf(c -> c.equals(ultimaPosicao));
+        }
 
-	private Celula calcularProximaPosicao() {
-		try {
-			switch (direcao.getSentidoDirecao()) {
-			case TipoCelula.ESTRADA_CIMA:
-				return celulaACima();
-			case TipoCelula.ESTRADA_BAIXO:
-				return celulaABaixo();
-			case TipoCelula.ESTRADA_DIREITA:
-				return celulaADireita();
-			case TipoCelula.ESTRADA_ESQUERDA:
-				return celulaAEsquerda();
-			default:
-				return null;
-			}
-		} catch (ArrayIndexOutOfBoundsException e) {
-			System.out.println("Carro " + getName() + " não conseguiu calcular próxima posição.");
-			return null;
-		}
+        // Se removeu todas as opções, recalcula sem filtro
+        if (opcoes.isEmpty()) {
+            opcoes = obterOpcoesMovimento();
+        }
 
-	}
+        // Escolhe aleatoriamente entre as opções válidas
+        return opcoes.isEmpty() ? null : opcoes.get(random.nextInt(opcoes.size()));
+    }
 
-	private void irParaCelula(Celula celula) {
-		try {
-			Celula celulaAntiga = this.celulaAtual;
-			celula.bloquear();
-			setCelulaAtual(celula);
-			celula.setCarro(this);
+    /**
+     * Obtém todas as células válidas baseadas no tipo da célula atual.
+     */
+    private List<Celula> obterOpcoesMovimento() {
+        int linha = posicao.getLinha();
+        int coluna = posicao.getColuna();
+        int tipo = posicao.getTipo();
+        
+        List<Celula> opcoes = new ArrayList<>();
 
-			if (celulaAntiga != null) {
-				celulaAntiga.removerCarroDaCelula();
-			}
+        switch (tipo) {
+            case TipoCelula.ESTRADA_CIMA:
+                adicionarCelulaSeValida(opcoes, linha - 1, coluna);
+                break;
+                
+            case TipoCelula.ESTRADA_BAIXO:
+                adicionarCelulaSeValida(opcoes, linha + 1, coluna);
+                break;
+                
+            case TipoCelula.ESTRADA_DIREITA:
+                adicionarCelulaSeValida(opcoes, linha, coluna + 1);
+                break;
+                
+            case TipoCelula.ESTRADA_ESQUERDA:
+                adicionarCelulaSeValida(opcoes, linha, coluna - 1);
+                break;
+                
+            case TipoCelula.CRUZAMENTO_CIMA:
+                adicionarCelulaSeValida(opcoes, linha - 1, coluna);
+                break;
+                
+            case TipoCelula.CRUZAMENTO_BAIXO:
+                adicionarCelulaSeValida(opcoes, linha + 1, coluna);
+                break;
+                
+            case TipoCelula.CRUZAMENTO_DIREITA:
+                adicionarCelulaSeValida(opcoes, linha, coluna + 1);
+                break;
+                
+            case TipoCelula.CRUZAMENTO_ESQUERDA:
+                adicionarCelulaSeValida(opcoes, linha, coluna - 1);
+                break;
+                
+            case TipoCelula.CRUZAMENTO_CIMA_DIREITA:
+                adicionarCelulaSeValida(opcoes, linha - 1, coluna);
+                adicionarCelulaSeValida(opcoes, linha, coluna + 1);
+                break;
+                
+            case TipoCelula.CRUZAMENTO_CIMA_ESQUERDA:
+                adicionarCelulaSeValida(opcoes, linha - 1, coluna);
+                adicionarCelulaSeValida(opcoes, linha, coluna - 1);
+                break;
+                
+            case TipoCelula.CRUZAMENTO_DIREITA_BAIXO:
+                adicionarCelulaSeValida(opcoes, linha, coluna + 1);
+                adicionarCelulaSeValida(opcoes, linha + 1, coluna);
+                break;
+                
+            case TipoCelula.CRUZAMENTO_BAIXO_ESQUERDA:
+                adicionarCelulaSeValida(opcoes, linha + 1, coluna);
+                adicionarCelulaSeValida(opcoes, linha, coluna - 1);
+                break;
+                
+            default:
+                System.err.println("Carro " + id + " em tipo de célula desconhecido: " + tipo);
+        }
 
-			Thread.sleep(velocidade);
-		} catch (InterruptedException e) {
-			System.out.println("Carro interrompido: " + getName());
-		}
-	}
+        return opcoes;
+    }
 
-	private void irParaCelulaNoCruzamento(Celula celula) {
-		try {
-			Celula celulaAntiga = this.celulaAtual;
-			setCelulaAtual(celula);
-			celula.setCarro(this);
+    /**
+     * Adiciona uma célula à lista se ela for válida (existe e não é vazia).
+     */
+    private void adicionarCelulaSeValida(List<Celula> lista, int linha, int coluna) {
+        Celula celula = malha.getCelula(linha, coluna);
+        if (celula != null && celula.getTipo() != TipoCelula.VAZIO) {
+            lista.add(celula);
+        }
+    }
 
-			if (celulaAntiga != null) {
-				celulaAntiga.removerCarroDaCelula();
-			}
+    /**
+     * Finaliza o carro, liberando todos os recursos.
+     */
+    private void finalizarCarro() {
+        if (posicao != null) {
+            posicao.sairCarro();
+            posicao.liberar(usarSemaforo);
+            System.out.println("Carro " + id + " saiu da malha");
+            posicao = null;
+        }
+        rodando = false;
+    }
 
-			Thread.sleep(velocidade);
-		} catch (InterruptedException e) {
-			System.out.println("Carro interrompido: " + getName());
-		}
-	}
+    /**
+     * Para a execução do carro.
+     */
+    public void parar() {
+        rodando = false;
+        interrupt();
+    }
+    
+    public Celula getPosicao() {
+        return posicao;
+    }
 
-	private Celula celulaABaixo() {
-		return rua.celulaParaBaixo(celulaAtual);
-	}
-
-	private Celula celulaACima() {
-		return rua.celulaParaCima(celulaAtual);
-	}
-
-	private Celula celulaADireita() {
-		return rua.celulaParaDireita(celulaAtual);
-	}
-
-	private Celula celulaAEsquerda() {
-		return rua.celulaParaEsquerda(celulaAtual);
-	}
-
-	private void direitaParaDireita() {
-		Celula c1 = celulaADireita();
-		Celula c2 = rua.celulaParaDireita(c1);
-		Celula c3 = rua.celulaParaDireita(c2);
-
-		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2, c3);
-		}
-	}
-
-	private void direitaParaCima() {
-		Celula c1 = celulaADireita();
-		Celula c2 = rua.celulaParaDireita(c1);
-		Celula c3 = rua.celulaParaCima(c2);
-		Celula c4 = rua.celulaParaCima(c3);
-
-		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2, c3, c4);
-		}
-	}
-
-	private void direitaParaBaixo() {
-		Celula c1 = celulaADireita();
-		Celula c2 = rua.celulaParaBaixo(c1);
-
-		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2);
-		}
-	}
-
-	private void esquerdaParaEsquerda() {
-		Celula c1 = celulaAEsquerda();
-		Celula c2 = rua.celulaParaEsquerda(c1);
-		Celula c3 = rua.celulaParaEsquerda(c2);
-
-		if (c2.getDirecao().getSentidoDirecao() > 4 && c2.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2, c3);
-		}
-	}
-
-	private void esquerdaParaCima() {
-		Celula c1 = celulaAEsquerda();
-		Celula c2 = rua.celulaParaCima(c1);
-
-		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2);
-		}
-	}
-
-	private void esquerdaParaBaixo() {
-		Celula c1 = celulaAEsquerda();
-		Celula c2 = rua.celulaParaDireita(c1);
-		Celula c3 = rua.celulaParaBaixo(c2);
-		Celula c4 = rua.celulaParaBaixo(c3);
-
-		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2, c3, c4);
-		}
-	}
-
-	private void cimaParaDireita() {
-		Celula c1 = celulaACima();
-		Celula c2 = rua.celulaParaDireita(c1);
-
-		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2);
-		}
-	}
-
-	private void cimaParaEsquerda() {
-		Celula c1 = celulaACima();
-		Celula c2 = rua.celulaParaCima(c1);
-		Celula c3 = rua.celulaParaEsquerda(c2);
-		Celula c4 = rua.celulaParaEsquerda(c3);
-
-		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2, c3, c4);
-		}
-	}
-
-	private void cimaParaCima() {
-		Celula c1 = celulaACima();
-		Celula c2 = rua.celulaParaCima(c1);
-		Celula c3 = rua.celulaParaCima(c2);
-
-		if (c2.getDirecao().getSentidoDirecao() > 4 && c2.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2, c3);
-		}
-	}
-
-	private void baixoParaDireita() {
-		Celula c1 = celulaABaixo();
-		Celula c2 = rua.celulaParaBaixo(c1);
-		Celula c3 = rua.celulaParaDireita(c2);
-		Celula c4 = rua.celulaParaDireita(c3);
-
-		if (c3.getDirecao().getSentidoDirecao() > 4 && c3.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2, c3, c4);
-		}
-	}
-
-	private void baixoParaEsquerda() {
-		Celula c1 = celulaABaixo();
-		Celula c2 = rua.celulaParaEsquerda(c1);
-
-		if (c1.getDirecao().getSentidoDirecao() > 4 && c1.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2);
-		}
-	}
-
-	private void baixoParaBaixo() {
-		Celula c1 = celulaABaixo();
-		Celula c2 = rua.celulaParaBaixo(c1);
-		Celula c3 = rua.celulaParaBaixo(c2);
-
-		if (c2.getDirecao().getSentidoDirecao() > 4 && c2.getDirecao().getSentidoDirecao() < 9) {
-			opcoesCruzamento();
-		} else {
-			jantarDosFilosofos(c1, c2, c3);
-		}
-	}
-
-	private void opcoesCruzamento() {
-		Random random = new Random();
-		int opcao = random.nextInt(3);
-
-		switch (direcao.getSentidoDirecao()) {
-		case TipoCelula.ESTRADA_CIMA:
-			switch (opcao) {
-			case 0:
-				cimaParaDireita();
-				break;
-			case 1:
-				cimaParaCima();
-				break;
-			case 2:
-				cimaParaEsquerda();
-				break;
-			}
-			break;
-		case TipoCelula.ESTRADA_BAIXO:
-			switch (opcao) {
-			case 0:
-				baixoParaDireita();
-				break;
-			case 1:
-				baixoParaBaixo();
-				break;
-			case 2:
-				baixoParaEsquerda();
-				break;
-			}
-			break;
-		case TipoCelula.ESTRADA_ESQUERDA:
-			switch (opcao) {
-			case 0:
-				esquerdaParaEsquerda();
-				break;
-			case 1:
-				esquerdaParaCima();
-				break;
-			case 2:
-				esquerdaParaBaixo();
-				break;
-			}
-			break;
-		case TipoCelula.ESTRADA_DIREITA:
-			switch (opcao) {
-			case 0:
-				direitaParaDireita();
-				break;
-			case 1:
-				direitaParaCima();
-				break;
-			case 2:
-				direitaParaBaixo();
-				break;
-			}
-			break;
-		}
-	}
-
-	private void jantarDosFilosofos(Celula... celulas) {
-		Random random = new Random();
-		boolean conseguiuAvancar = false;
-
-		try {
-			do {
-				boolean[] bloqueios = new boolean[celulas.length];
-				boolean todasBloqueadas = true;
-
-				for (int i = 0; i < celulas.length; i++) {
-					Celula celula = celulas[i];
-					if (celula != null) {
-						bloqueios[i] = celula.tentarBloquear();
-						if (!bloqueios[i]) {
-							todasBloqueadas = false;
-							break;
-						}
-					} else {
-						todasBloqueadas = false;
-						break;
-					}
-				}
-
-				if (todasBloqueadas) {
-					if (this.celulaAtual instanceof CelulaSemaforo) {
-						this.celulaAtual.liberar();
-						for (Celula celula : celulas) {
-							irParaCelulaNoCruzamento(celula);
-						}
-					} else {
-						for (Celula celula : celulas) {
-							irParaCelula(celula);
-						}
-					}
-
-					this.direcao = celulas[celulas.length - 1].getDirecao();
-
-					for (Celula celula : celulas) {
-						celula.liberar();
-					}
-
-					conseguiuAvancar = true;
-
-				} else {
-					for (int i = 0; i < celulas.length; i++) {
-						if (bloqueios[i] && celulas[i] != null) {
-							celulas[i].liberar();
-						}
-					}
-
-					Thread.sleep(velocidade + random.nextInt(500));
-				}
-
-			} while (!conseguiuAvancar && ativo);
-
-		} catch (InterruptedException e) {
-			Thread.currentThread().interrupt();
-			System.out.println("Carro " + getName() + " interrompido durante jantar dos filósofos.");
-		}
-	}
+    public int getCarroId() {
+        return id;
+    }
+    
+    public int getVelocidade() {
+        return velocidade;
+    }
+    
+    public boolean isUsandoSemaforo() {
+        return usarSemaforo;
+    }
 }
