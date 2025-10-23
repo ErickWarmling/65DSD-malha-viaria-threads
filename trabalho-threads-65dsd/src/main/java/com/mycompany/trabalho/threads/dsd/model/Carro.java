@@ -164,7 +164,6 @@ public class Carro extends Thread {
         while (!fila.isEmpty()) {
             Object[] item = fila.poll();
             Celula atual = (Celula) item[0];
-            @SuppressWarnings("unchecked")
             List<Celula> caminho = (List<Celula>) item[1];
             List<Celula> caminhoAqui = new ArrayList<>(caminho);
             caminhoAqui.add(atual);
