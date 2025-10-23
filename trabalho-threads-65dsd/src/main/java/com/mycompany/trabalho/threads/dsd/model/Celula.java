@@ -1,63 +1,57 @@
 package com.mycompany.trabalho.threads.dsd.model;
 
-import com.mycompany.trabalho.threads.dsd.model.Direcao;
-
 public abstract class Celula {
-	
-	private final int linha;
-	private final int coluna;
-	private final Direcao direcao;
-	private Carro carro;
-	private final boolean isEntrada;
-	private final boolean isCruzamento;
-	
-	public Celula (int linha, int coluna, Direcao direcao, boolean isEntrada, boolean isCruzamento) {
-		this.linha = linha;
-		this.coluna = coluna;
-		this.direcao = direcao;
-		this.isEntrada = isEntrada;
-		this.isCruzamento = isCruzamento;
-	}
 
-	public int getLinha() {
-		return linha;
-	}
+    private final int linha;
+    private final int coluna;
+    private final Direcao direcao;
+    private Carro carro;
+    private final boolean isEntrada;
+    private final boolean isCruzamento;
 
-	public int getColuna() {
-		return coluna;
-	}
-	
-	public Direcao getDirecao() {
-		return direcao;
-	}
+    public Celula(int linha, int coluna, Direcao direcao, boolean isEntrada, boolean isCruzamento) {
+        this.linha = linha;
+        this.coluna = coluna;
+        this.direcao = direcao;
+        this.isEntrada = isEntrada;
+        this.isCruzamento = isCruzamento;
+    }
 
-        public Carro getCarro() {
-            return carro;
-        }
+    public int getLinha() {
+        return linha;
+    }
 
-	public void setCarro(Carro carro) {
-		this.carro = carro;
-	}
-	
-	public void removerCarroDaCelula() {
-		if (this.carro != null) {
-			this.carro = null;
-			liberar();
-		}
-	}
+    public int getColuna() {
+        return coluna;
+    }
 
-	public boolean isEntrada() {
-		return isEntrada;
-	}
+    public Direcao getDirecao() {
+        return direcao;
+    }
 
-	public boolean isCruzamento() {
-		return isCruzamento;
-	}
-	
-	public abstract void liberar();
-	
-	public abstract void bloquear() throws InterruptedException;
-	
-	public abstract boolean tentarBloquear() throws InterruptedException;
-	
+    public Carro getCarro() {
+        return carro;
+    }
+
+    public void setCarro(Carro carro) {
+        this.carro = carro;
+    }
+
+    public void removerCarroDaCelula() {
+        this.carro = null;
+    }
+
+    public boolean isEntrada() {
+        return isEntrada;
+    }
+
+    public boolean isCruzamento() {
+        return isCruzamento;
+    }
+
+    public abstract void liberar();
+
+    public abstract void bloquear() throws InterruptedException;
+    
+    public abstract boolean tentarBloquear();
 }

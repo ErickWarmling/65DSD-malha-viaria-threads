@@ -2,8 +2,6 @@ package com.mycompany.trabalho.threads.dsd.model;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import utils.LeitorMalhaViaria;
@@ -11,8 +9,8 @@ import utils.LeitorMalhaViaria;
 public class Rua {
 
     private Celula[][] matrizMalhaViaria;
-    private List<Celula> pontosDeEntrada = new CopyOnWriteArrayList<>();
-    private List<Carro> carros = new ArrayList<>();
+    private CopyOnWriteArrayList<Celula> pontosDeEntrada = new CopyOnWriteArrayList<>();
+    private CopyOnWriteArrayList<Carro> carros = new CopyOnWriteArrayList<>();
 
     public Rua(String arquivoMalha, boolean usarSemaforo) throws FileNotFoundException, IOException {
         String caminhoArquivo = "/assets/arquivos/" + arquivoMalha + ".txt";
@@ -38,55 +36,42 @@ public class Rua {
     }
 
     public void removerCarro(Carro carro) {
-        carro.setProximaPosicao(null);
-        if (carro.getCelulaAtual() != null) {
-            carro.getCelulaAtual().removerCarroDaCelula();
-            carro.setCelulaAtual(null);
+        if (carro.obterCelulaAtual() != null) {
+            carro.obterCelulaAtual().removerCarroDaCelula();
+            carro.definirCelulaAtual(null);
         }
         this.carros.remove(carro);
     }
 
-    public List<Carro> getCarros() {
+    public CopyOnWriteArrayList<Carro> getCarros() {
         return carros;
     }
 
     public Celula celulaParaBaixo(Celula celula) {
-        try {
-            int novaLinha = celula.getLinha() + 1;
-            int novacoluna = celula.getColuna();
-            return matrizMalhaViaria[novaLinha][novacoluna];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            return null;
-        }
+        int novaLinha = celula.getLinha() + 1;
+        int novacoluna = celula.getColuna();
+        if (novaLinha >= matrizMalhaViaria.length) return null;
+        return matrizMalhaViaria[novaLinha][novacoluna];
     }
 
     public Celula celulaParaCima(Celula celula) {
-        try {
-            int novaLinha = celula.getLinha() - 1;
-            int novacoluna = celula.getColuna();
-            return matrizMalhaViaria[novaLinha][novacoluna];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            return null;
-        }
+        int novaLinha = celula.getLinha() - 1;
+        int novacoluna = celula.getColuna();
+        if (novaLinha < 0) return null;
+        return matrizMalhaViaria[novaLinha][novacoluna];
     }
 
     public Celula celulaParaDireita(Celula celula) {
-        try {
-            int novaLinha = celula.getLinha();
-            int novacoluna = celula.getColuna() + 1;
-            return matrizMalhaViaria[novaLinha][novacoluna];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            return null;
-        }
+        int novaLinha = celula.getLinha();
+        int novacoluna = celula.getColuna() + 1;
+        if (novacoluna >= matrizMalhaViaria[0].length) return null;
+        return matrizMalhaViaria[novaLinha][novacoluna];
     }
 
     public Celula celulaParaEsquerda(Celula celula) {
-        try {
-            int novaLinha = celula.getLinha();
-            int novacoluna = celula.getColuna() - 1;
-            return matrizMalhaViaria[novaLinha][novacoluna];
-        } catch (ArrayIndexOutOfBoundsException e) {
-            return null;
-        }
+        int novaLinha = celula.getLinha();
+        int novacoluna = celula.getColuna() - 1;
+        if (novacoluna < 0) return null;
+        return matrizMalhaViaria[novaLinha][novacoluna];
     }
 }

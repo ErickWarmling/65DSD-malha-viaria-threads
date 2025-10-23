@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package com.mycompany.trabalho.threads.dsd.view;
 
 import com.mycompany.trabalho.threads.dsd.model.Rua;
@@ -10,10 +6,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JOptionPane;
 
-/**
- *
- * @author warml
- */
 public class TelaInicial extends javax.swing.JFrame {
 
     /**
@@ -123,20 +115,20 @@ public class TelaInicial extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void btnIniciarSimulacaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnIniciarSimulacaoActionPerformed
-    try {
-        int quantidadeVeiculos = (Integer) jSpinner1.getValue();
-        int intervaloInsercao = (Integer) jSpinner2.getValue();
-        String arquivoMalha = (String) jComboBox2.getSelectedItem();
-        boolean usarSemaforo = jComboBox1.getSelectedIndex() == 0;   
-        
-        Rua rua = new Rua(arquivoMalha, usarSemaforo);
-        TelaSimulacao telaSimulacao = new TelaSimulacao(rua, quantidadeVeiculos, intervaloInsercao);
-        telaSimulacao.setVisible(true); 
-       
-        dispose();
-    }   catch (IOException ex) {       
+        try {
+            int quantidadeVeiculos = (Integer) jSpinner1.getValue();
+            int intervaloInsercao = (Integer) jSpinner2.getValue();
+            String arquivoMalha = (String) jComboBox2.getSelectedItem();
+            boolean usarSemaforo = jComboBox1.getSelectedIndex() == 0;
+
+            Rua rua = new Rua(arquivoMalha, usarSemaforo);
+            TelaSimulacao telaSimulacao = new TelaSimulacao(rua, quantidadeVeiculos, intervaloInsercao);
+            telaSimulacao.setVisible(true);
+
+            dispose();
+        } catch (IOException ex) {
             JOptionPane.showMessageDialog(this, "Erro ao carregar o arquivo da malha: " + ex.getMessage());
-        }       
+        }     
     }//GEN-LAST:event_btnIniciarSimulacaoActionPerformed
 
     /**

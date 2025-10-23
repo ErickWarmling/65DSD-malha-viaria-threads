@@ -16,6 +16,7 @@ public class Simulacao extends Thread {
     private volatile boolean inserindo;
     private volatile boolean simulacaoAtiva;
     private final Random random;
+    private int quantidadeCarrosAnterior = 0;
 
     public Simulacao(Rua rua, TelaSimulacao telaSimulacao, int quantidadeMaximaVeiculos, int intervaloInsercao) {
         this.rua = rua;
@@ -31,16 +32,21 @@ public class Simulacao extends Thread {
     public void run() {
         while (simulacaoAtiva) {
             try {
-                if (inserindo && rua.getCarros().size() < quantidadeMaximaVeiculos) {
-                    inserirNovoCarro();
+                telaSimulacao.repaint();
+                
+                int quantidadeAtual = rua.getCarros().size();
+                
+                if (inserindo && quantidadeAtual < quantidadeMaximaVeiculos) {
+                    inserirNovoCarro();                    
                     Thread.sleep(intervaloInsercao);
                 } else {
                     Thread.sleep(100);
-                }
+                }  
                 
-                limparCarrosInativos();
+                if (!inserindo && quantidadeAtual == 0) {
+                    simulacaoAtiva = false;
+                }         
             } catch (InterruptedException e) {
-                System.out.println("Simulação interrompida");
                 break;
             }
         }
@@ -50,27 +56,32 @@ public class Simulacao extends Thread {
         List<Celula> entradas = obterPontosDeEntrada();
         
         if (entradas.isEmpty()) {
-            System.out.println("Nenhum ponto de entrada disponível");
             return;
         }
         
-        // Seleciona uma entrada aleatória
         Celula entradaSelecionada = entradas.get(random.nextInt(entradas.size()));
         
-        // Verifica se a entrada está livre
         if (entradaSelecionada.getCarro() == null) {
-            int velocidade = 500 + random.nextInt(500); // Velocidade entre 500-1000ms
-            Carro novoCarro = new Carro(rua, velocidade);
-            
-            novoCarro.setCelulaAtual(entradaSelecionada);
-            novoCarro.setProximaPosicao(entradaSelecionada); //Está passando o entrada selecionada
-            novoCarro.setDirecao(entradaSelecionada.getDirecao());
-            
-            rua.adicionarCarro(novoCarro);
-            novoCarro.start();
-            
-            System.out.println("Carro " + novoCarro.getCarroId() + " inserido na posição (" 
-                    + entradaSelecionada.getLinha() + ", " + entradaSelecionada.getColuna() + ")");
+            try {
+                entradaSelecionada.bloquear();
+                if (entradaSelecionada.getCarro() == null) {
+                    int velocidade = 500 + random.nextInt(500);
+                    Carro novoCarro = new Carro(rua, velocidade);
+                    
+                    entradaSelecionada.setCarro(novoCarro);
+                    novoCarro.definirCelulaAtual(entradaSelecionada);
+                    novoCarro.definirDirecao(entradaSelecionada.getDirecao());
+                    
+                    rua.adicionarCarro(novoCarro);
+                    novoCarro.start();
+                    
+                    telaSimulacao.getMalhaPanel().atualizar();
+                }
+            } catch (InterruptedException e) {
+                return;
+            } finally {
+                entradaSelecionada.liberar();
+            }
         }
     }
     
@@ -89,19 +100,12 @@ public class Simulacao extends Thread {
         return entradas;
     }
     
-    private void limparCarrosInativos() {
-        List<Carro> carros = rua.getCarros();
-        carros.removeIf(carro -> !carro.isAlive());
-    }
-    
     public void pararInsercao() {
         this.inserindo = false;
-        System.out.println("Inserção de carros pausada");
     }
     
     public void continuarInsercao() {
         this.inserindo = true;
-        System.out.println("Inserção de carros retomada");
     }
     
     public boolean isInserindo() {
@@ -109,18 +113,14 @@ public class Simulacao extends Thread {
     }
     
     public void encerrarSimulacao() {
-        System.out.println("Encerrando simulação...");
         this.simulacaoAtiva = false;
         this.inserindo = false;
         
-        // Interrompe todos os carros
         for (Carro carro : rua.getCarros()) {
             if (carro.isAlive()) {
                 carro.interrupt();
             }
         }
-        
-        System.out.println("Simulação encerrada");
     }
     
     public int getQuantidadeCarrosAtual() {

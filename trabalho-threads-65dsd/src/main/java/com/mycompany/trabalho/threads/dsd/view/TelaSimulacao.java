@@ -1,6 +1,6 @@
 package com.mycompany.trabalho.threads.dsd.view;
 
-import com.mycompany.trabalho.threads.dsd.controller.Simulacao; 
+import com.mycompany.trabalho.threads.dsd.controller.Simulacao;
 import com.mycompany.trabalho.threads.dsd.model.Rua;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -12,29 +12,34 @@ public class TelaSimulacao extends javax.swing.JFrame {
     private Simulacao simulacao;
     private final int quantidadeMaximaVeiculos;
     private final int intervaloInsercao;
-    
+
     public TelaSimulacao(Rua rua, int quantidadeMaximaVeiculos, int intervaloInsercao) {
         this.rua = rua;
         this.quantidadeMaximaVeiculos = quantidadeMaximaVeiculos;
         this.intervaloInsercao = intervaloInsercao;
         initComponents();
-        
+
         malhaPanel = new MalhaPanel(rua.getMatrizMalhaViaria());
         malhaPanel.setPreferredSize(new Dimension(600, 600));
-        
+
         jPanel1.setLayout(new BorderLayout());
         jPanel1.add(malhaPanel, BorderLayout.CENTER);
         jPanel1.revalidate();
         jPanel1.repaint();
-        
+
         this.simulacao = new Simulacao(rua, this, quantidadeMaximaVeiculos, intervaloInsercao);
         this.simulacao.start();
+
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                encerrarEVoltar();
+            }
+        });
     }
-    
-    public void atualizarMalha() {
-        if (malhaPanel != null) {
-            malhaPanel.atualizarMalha(rua.getMatrizMalhaViaria());
-        }
+
+    public MalhaPanel getMalhaPanel() {
+        return malhaPanel;
     }
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -96,17 +101,34 @@ public class TelaSimulacao extends javax.swing.JFrame {
 
     private void btnPararInsercaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnPararInsercaoActionPerformed
         if (simulacao != null) {
-            simulacao.pararInsercao();
+            if (simulacao.isInserindo()) {
+                simulacao.pararInsercao();
+                btnPararInsercao.setText("Continuar Inserção");
+            } else {
+                simulacao.continuarInsercao();
+                btnPararInsercao.setText("Parar Inserção");
+            }
         }
     }//GEN-LAST:event_btnPararInsercaoActionPerformed
 
     private void btnEncerrarSimulacaoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnEncerrarSimulacaoActionPerformed
-        if (simulacao != null) {
-            simulacao.encerrarSimulacao();
-        }
+        encerrarEVoltar();
     }//GEN-LAST:event_btnEncerrarSimulacaoActionPerformed
 
-
+    private void encerrarEVoltar() {
+        if (simulacao != null) {
+            simulacao.encerrarSimulacao();
+            while (simulacao.isSimulacaoAtiva()) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                }
+            }
+        }
+        dispose();
+        new TelaInicial().setVisible(true);
+    }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton btnEncerrarSimulacao;
     private javax.swing.JButton btnPararInsercao;

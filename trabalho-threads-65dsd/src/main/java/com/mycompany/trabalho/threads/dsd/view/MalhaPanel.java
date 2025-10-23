@@ -26,8 +26,7 @@ public class MalhaPanel extends javax.swing.JPanel {
         carregarIconesCelulas();
     }
 
-    public void atualizarMalha(Celula[][] malhaViaria) {
-        this.malhaViaria = malhaViaria;
+    public void atualizar() {
         repaint();
     }
 
@@ -43,30 +42,31 @@ public class MalhaPanel extends javax.swing.JPanel {
             for (int j = 0; j < malhaViaria[i].length; j++) {
                 Celula celula = malhaViaria[i][j];
                 int tipoCelula = celula.getDirecao().getSentidoDirecao();
-     
-//                g.setColor(getCorCelula(tipoCelula, celula));
-//                g.fillRect(j * TAMANHO_CELULA, i * TAMANHO_CELULA, TAMANHO_CELULA, TAMANHO_CELULA);
-//
-//                // Borda preta
-//                g.setColor(Color.BLACK);
-//                g.drawRect(j * TAMANHO_CELULA, i * TAMANHO_CELULA, TAMANHO_CELULA, TAMANHO_CELULA);
+                
+                g.setColor(obterCorCelula(tipoCelula, celula));
+                g.fillRect(j * TAMANHO_CELULA, i * TAMANHO_CELULA, TAMANHO_CELULA, TAMANHO_CELULA);
+                g.setColor(Color.BLACK);
+                g.drawRect(j * TAMANHO_CELULA, i * TAMANHO_CELULA, TAMANHO_CELULA, TAMANHO_CELULA);
 
-                // Desenhar ícone se houver
                 ImageIcon icone = iconesCelulas.get(tipoCelula);
                 if (icone != null) {
                     g.drawImage(
-                            icone.getImage(),
-                            j * TAMANHO_CELULA + 5,
-                            i * TAMANHO_CELULA + 5,
-                            TAMANHO_CELULA - 10,
-                            TAMANHO_CELULA - 10,
-                            this
+                        icone.getImage(),
+                        j * TAMANHO_CELULA + 5,
+                        i * TAMANHO_CELULA + 5,
+                        TAMANHO_CELULA - 10,
+                        TAMANHO_CELULA - 10,
+                        this
                     );
                 }
+            }
+        }
 
-                // Desenhar carro
+        for (int i = 0; i < malhaViaria.length; i++) {
+            for (int j = 0; j < malhaViaria[i].length; j++) {
+                Celula celula = malhaViaria[i][j];
                 Carro carro = celula.getCarro();
-//                if (carro != null) {
+                if (carro != null) {
                     int x = j * TAMANHO_CELULA + TAMANHO_CELULA / 4;
                     int y = i * TAMANHO_CELULA + TAMANHO_CELULA / 4;
                     int diametro = TAMANHO_CELULA / 2;
@@ -75,13 +75,13 @@ public class MalhaPanel extends javax.swing.JPanel {
                     g.fillOval(x, y, diametro, diametro);
 
                     g.setColor(Color.WHITE);
-//                    g.drawString(String.valueOf(carro.getCarroId()), x + diametro / 4, y + (3 * diametro) / 4);
-                //}
+                    g.drawString(String.valueOf(carro.obterIdCarro()), x + diametro / 4, y + (3 * diametro) / 4);
+                }
             }
         }
     }
 
-    private Color getCorCelula(int tipoCelula, Celula celula) {
+    private Color obterCorCelula(int tipoCelula, Celula celula) {
         if (celula.isEntrada()) {
             return Color.BLACK;
         }
@@ -89,12 +89,9 @@ public class MalhaPanel extends javax.swing.JPanel {
             return Color.GRAY;
         }
         return switch (tipoCelula) {
-            case TipoCelula.VAZIO ->
-                Color.GREEN.darker();
-            case TipoCelula.ESTRADA_BAIXO, TipoCelula.ESTRADA_CIMA, TipoCelula.ESTRADA_DIREITA, TipoCelula.ESTRADA_ESQUERDA ->
-                Color.BLACK;
-            default ->
-                Color.GRAY;
+            case TipoCelula.VAZIO -> Color.GREEN.darker();
+            case TipoCelula.ESTRADA_BAIXO, TipoCelula.ESTRADA_CIMA, TipoCelula.ESTRADA_DIREITA, TipoCelula.ESTRADA_ESQUERDA -> Color.BLACK;
+            default -> Color.GRAY;
         };
     }
     
@@ -105,10 +102,8 @@ public class MalhaPanel extends javax.swing.JPanel {
             iconesCelulas.put(TipoCelula.ESTRADA_DIREITA, new ImageIcon(getClass().getResource("/assets/icones/setaEstradaDireita.png")));
             iconesCelulas.put(TipoCelula.ESTRADA_ESQUERDA, new ImageIcon(getClass().getResource("/assets/icones/setaEstradaEsquerda.png")));
         } catch (Exception e) {
-            System.err.println("Erro ao carregar ícones: " + e.getMessage());
         }
     }
-
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
@@ -125,6 +120,9 @@ public class MalhaPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
+	public void update() {
+		repaint();
+	}
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     // End of variables declaration//GEN-END:variables
